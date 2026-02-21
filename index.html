@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <!-- aframe-ar (markerless) -->
+  <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
+  <title>Markerless AR Scooter</title>
+  <style>
+    body { 
+      margin:0; 
+      overflow:hidden; 
+      font-family:Arial; 
+    }
+    
+    #ui { 
+      position: fixed; 
+      bottom: 20px; 
+      left: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px; 
+      z-index: 9999; /* AR camera மேல show ஆக */
+    }
+    
+    button { 
+      padding: 12px 18px; 
+      margin: 5px; 
+      border: none; 
+      border-radius: 8px; 
+      background: #111; 
+      color: white; 
+      font-size: 14px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- UI Buttons - AR Camera மேல Fixed -->
+  <div id="ui">
+    <button onclick="show('battery')">Battery</button>
+    <button onclick="show('speed')">Speed</button>
+    <button onclick="show('eco')">Eco</button>
+  </div>
+
+  <script>
+AFRAME.registerComponent('ar-logic',{
+  tick: function(){
+    let cam = document.querySelector("#cam");
+    let ground = document.querySelector("#ground");
+    let circle = document.querySelector("#circle");
+
+    if(!cam || !ground) return;
+
+    let raycaster = cam.components.raycaster;
+    if(!raycaster) return;
+
+    let intersection = raycaster.getIntersection(ground);
+
+    if(intersection){
+      circle.setAttribute('position', intersection.point);
+    }
+  }
+});
+
+// Place model on tap (buttons தவிர)
+window.addEventListener('touchstart', function(e){
+  if(e.target.tagName !== 'BUTTON') {
+    let circle = document.querySelector("#circle");
+    let wrapper = document.querySelector("#scootyWrapper");
+    let pos = circle.getAttribute('position');
+    wrapper.setAttribute('position', pos);
+  }
+});
+
+// Show text panel + Play your audio file
+function show(type) {
+  let panel = document.querySelector("#infoPanel");
+  let text = document.querySelector("#arText");
+  
+  // Show panel
+  panel.setAttribute("visible", true);
+
+  // Update description text
+  if (type === "battery")
+    text.setAttribute("value", "🔋High Density Lithium Battery Range: upto 200 km per charge Fast Charging: 0-80% in 30-40 min");
+  if (type === "speed")
+    text.setAttribute("value", "⚡ Top Speed: 128 km/h-Super impressive.");
+  if (type === "eco")
+    text.setAttribute("value", "🌱 100% Electric Zero Emission Vehicle Low noise pollution");
+
+  // Play your local audio file
+  let audio = document.querySelector('#audio-' + type);
+  if (audio) {
+    audio.components.sound.playSound();
+  }
+}
+  </script>
+
+  <!-- AR Scene -->
+  <a-scene ar ar-logic>
+    <!-- Camera with Raycaster -->
+    <a-camera id="cam" ar-raycaster raycaster="objects: #ground;"></a-camera>
+
+    <!-- Invisible Ground -->
+    <a-plane id="ground" rotation="-90 0 0" width="100" height="100" visible="false"></a-plane>
+
+    <!-- Placement Ring -->
+    <a-ring id="circle" rotation="-90 0 0" radius-inner="0.1" radius-outer="0.15" color="yellow"></a-ring>
+
+    <!-- Scooter Wrapper -->
+    <a-entity id="scootyWrapper" position="0 0 -3" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear;">
+
+      <!-- GLB Model -->
+      <a-gltf-model id="scooty" src="./scooter.glb" scale="0.5 0.5 0.5"></a-gltf-model>
+      
+      <a-text value="Ride Verse E128" color="purple" align="center" position="0 2 0" scale="2 2 2"></a-text>
+      
+      <!-- AR Info Panel -->
+      <a-plane id="infoPanel" color="black" opacity="0.7" width="1.8" height="0.6" 
+               position="0 1.5 0" visible="false">
+        <a-text id="arText" value="" align="center" color="white" width="1.7" position="0 0 0.01"></a-text>
+      </a-plane>
+
+      <!-- உங்க Audio Files இங்கே Insert பண்ணுங்க (VS Code-ல) -->
+      <a-sound id="audio-battery" src="./Audios/battery.mp3" autoplay="false" positional="false" volume="0.8"></a-sound>
+      <a-sound id="audio-speed" src="./Audios/speed.mp3" autoplay="false" positional="false" volume="0.8"></a-sound>
+      <a-sound id="audio-eco" src="./Audios/eco.mp3" autoplay="false" positional="false" volume="0.8"></a-sound>
+
+    </a-entity>
+  </a-scene>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
